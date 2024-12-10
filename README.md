@@ -8,3 +8,4 @@ Known errors and flaws:
 - Timeframe and csv-Location are hardcoded
 - First round can return empty data, which Freqtarde doesnt like. You must clean this row from hand
 - Comments are mostly german
+- Funding rate looks weird
