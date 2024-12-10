@@ -1,0 +1,55 @@
+version: '3.8'  
+services:  
+  freqtrade:  
+    build:
+      context: .
+      dockerfile: ./freqtrade/Dockerfile
+    image: freqtradeorg/freqtrade:develop
+    restart: unless-stopped
+    container_name: ws_freqtrade  
+    volumes:  
+      - ./freqtrade/user_data:/freqtrade/user_data  
+    ports:
+      - "127.0.0.1:7778:7778"
+    command: >  
+      trade  
+      --logfile /freqtrade/user_data/logs/freqtrade.log
+      --db-url sqlite:////freqtrade/user_data/ws_trades.sqlite
+      --config /freqtrade/user_data/config.json
+      --strategy LiquidationStrategy  
+    depends_on:  
+      - redis  
+    networks:  
+      - freqtrade_network  
+
+  redis:  
+    image: redis:latest  
+    container_name: redis  
+    ports:  
+      - "6379:6379"  
+    networks:  
+      - freqtrade_network  
+
+  websocket_stream:  
+    build:  
+      context: ./websocket_stream  
+    container_name: websocket_stream  
+    depends_on:  
+      - redis  
+    networks:  
+      - freqtrade_network  
+
+  csv_writer:  
+    build:  
+      context: ./csv_writer  
+    container_name: csv_writer  
+    depends_on:  
+      - redis  
+    networks:  
+      - freqtrade_network  
+    volumes:  
+      - ./freqtrade/user_data/strategies:/home/olav/freqtrade_redis_ws/freqtrade/user_data/strategies  
+
+networks:  
+  freqtrade_network:  
+    driver: bridge  
